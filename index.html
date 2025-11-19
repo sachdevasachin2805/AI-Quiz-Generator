@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced AI Quiz &amp; Study Buddy</title>
+<!-- Load Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Load PDF Libraries for client-side generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Use Poppins and Inter font families -->
+
+<!-- Configure Tailwind to use dark mode and custom colors -->
+
+</head>
+<body class="transition-colors duration-300 min-h-screen bg-light-bg dark:bg-gray-900">
+<!-- Main Application Container -->
+<div class="relative min-h-screen flex flex-col items-center p-4 sm:p-8" id="app">
+<!-- Header (Shared by both views) -->
+<header class="w-full max-w-5xl flex justify-between items-center mb-8 hidden" id="appHeader">
+<h1 class="text-3xl font-extrabold font-display bg-clip-text text-transparent bg-gradient-to-r from-primary-blue to-soft-blue transition-colors duration-300">
+                AI Study Buddy
+            </h1>
+<div class="flex items-center space-x-4">
+<button class="p-2 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200" id="myQuizzesBtn" title="My Saved Quizzes">
+<svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-2 rounded-full transition-colors duration-300 focus:outline-none" id="themeToggle" title="Toggle Dark/Light Mode">
+<svg class="h-6 w-6 text-gray-800 dark:text-yellow-400 hidden" fill="none" id="sunIcon" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<svg class="h-6 w-6 text-gray-500 dark:text-gray-200" fill="none" id="moonIcon" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<div class="text-xs font-mono text-gray-600 dark:text-gray-400" id="authStatus"></div>
+</div>
+</header>
+<!-- Loading Indicator for Initial Auth -->
+<div class="absolute inset-0 bg-gray-100 dark:bg-gray-900 z-50 flex items-center justify-center transition-opacity duration-300" id="initialLoading">
+<div class="flex flex-col items-center">
+<div class="animate-spin rounded-full h-12 w-12 border-b-4 border-primary-blue"></div>
+<p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-200">Authenticating and loading...</p>
+</div>
+</div>
+<!-- AUTH VIEW / LOGIN SCREEN -->
+<div class="hidden w-full max-w-md mt-20 p-8 text-center bg-white dark:bg-dark-card shadow-2xl rounded-2xl border-4 border-primary-blue/50 transition-all duration-500" id="authView">
+<svg class="h-16 w-16 mx-auto text-primary-blue mb-4" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<h2 class="text-3xl font-extrabold font-display text-gray-900 dark:text-gray-50 mb-3">
+                Secure Access
+            </h2>
+<p class="text-gray-600 dark:text-gray-400 mb-6">
+                Enter your desired email and password to start the demo.
+            </p>
+<!-- Login Fields -->
+<div class="space-y-4 mb-6">
+<div>
+<input class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50 focus:ring-primary-blue focus:border-primary-blue" id="loginEmail" placeholder="Email Address" type="email" value=""/>
+</div>
+<div>
+<input class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50 focus:ring-primary-blue focus:border-primary-blue" id="loginPassword" placeholder="Password" type="password" value=""/>
+</div>
+</div>
+<!-- Auth Status Message -->
+<div class="mb-6 font-semibold text-sm p-3 rounded-lg border border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300" id="authStatusMessage">
+                You are currently signed in as a Guest.
+            </div>
+<button class="glowing-button w-full py-3 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-primary-blue to-soft-blue hover:from-soft-blue hover:to-primary-blue transition-all duration-300 shadow-lg disabled:opacity-50" id="startAppBtn">
+<svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                Secure Login
+            </button>
+<p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
+                Authentication handled securely via provided environment token.
+            </p>
+</div>
+<!-- Main Content Area / QUIZ GENERATOR VIEW -->
+<main class="w-full max-w-5xl hidden" id="generatorView">
+<!-- Loading Indicator -->
+<div class="hidden absolute inset-0 bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-xl transition-opacity duration-300" id="loading">
+<div class="flex flex-col items-center">
+<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue"></div>
+<p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-200" id="loadingMessage">Generating quiz...</p>
+</div>
+</div>
+<div class="transition-all duration-500 space-y-6">
+<!-- Input Card - Topic Based -->
+<div class="bg-white dark:bg-dark-card shadow-xl rounded-2xl p-6 md:p-8 border border-soft-blue/30 dark:border-primary-blue/30 transform hover:shadow-2xl transition-all duration-300" id="topicGeneratorCard">
+<h2 class="text-2xl font-bold font-display text-gray-900 dark:text-gray-50 mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
+                        1. Generate by Topic
+                    </h2>
+<div class="space-y-4">
+<!-- Topic Input Row -->
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="topicInput">Topic Name</label>
+<input class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:ring-primary-blue focus:border-primary-blue dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50 placeholder-gray-400" id="topicInput" placeholder="Enter your desired topic..." required="" type="text" value="Blockchain Technology"/>
+</div>
+<!-- Equal Format Row for Parameters (New 3-column grid) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Column 1: Number of Questions -->
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="numQuestions"># Questions (Max 30)</label>
+<input class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:ring-primary-blue focus:border-primary-blue dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50" id="numQuestions" max="30" min="1" required="" type="number" value="10"/>
+</div>
+<!-- Column 2: Difficulty -->
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="difficulty">Difficulty</label>
+<select class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:ring-primary-blue focus:border-primary-blue dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50" id="difficulty" required="">
+<option value="Easy">Easy</option>
+<option selected="" value="Medium">Medium</option>
+<option value="Hard">Hard</option>
+</select>
+</div>
+<!-- Column 3: Question Type -->
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="questionType">Question Type</label>
+<select class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:ring-primary-blue focus:border-primary-blue dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50" id="questionType" required="">
+<option selected="" value="Multiple Choice">Multiple Choice</option>
+<option value="True/False">True/False (UI not implemented)</option>
+<option value="Short Answer">Short Answer (UI not implemented)</option>
+</select>
+</div>
+</div>
+<!-- Generate Button Row -->
+<div>
+<button class="glowing-button w-full py-3 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-primary-blue to-soft-blue hover:from-soft-blue hover:to-primary-blue transition-all duration-300 shadow-lg mt-4" id="generateQuizBtn">
+<svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                Generate New Quiz
+                            </button>
+</div>
+</div>
+</div>
+<!-- Input Card - Text Based -->
+<div class="bg-white dark:bg-dark-card shadow-xl rounded-2xl p-6 md:p-8 border border-soft-blue/30 dark:border-primary-blue/30">
+<h2 class="text-2xl font-bold font-display text-gray-900 dark:text-gray-50 mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
+                        2. Generate from Text (The "Wow" Feature)
+                    </h2>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="textInput">Paste your study notes or article here (min 100 characters)</label>
+<textarea class="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-inner focus:ring-primary-blue focus:border-primary-blue dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50 mb-4" id="textInput" placeholder="Paste text here to generate a quiz based *only* on its content..." rows="5">Blockchain is a decentralized, distributed, and often public, digital ledger that is used to record transactions across many computers so that any involved record cannot be altered retroactively without the alteration of all subsequent blocks and the consensus of the network. This allows the participants to verify and audit transactions independently and relatively inexpensively. The most famous example is Bitcoin.</textarea>
+<button class="glowing-button w-full py-3 px-6 rounded-xl text-white font-semibold bg-pink-500 hover:bg-pink-600 transition-all duration-300 shadow-lg" id="generateFromTextBtn">
+<svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                        Generate Quiz from Text (Uses # Questions Above)
+                    </button>
+</div>
+<!-- Timer & Score Display -->
+<div class="flex justify-between items-center hidden bg-white dark:bg-dark-card p-4 rounded-xl shadow-lg border border-yellow-300 dark:border-yellow-700" id="timerScoreContainer">
+<label class="flex items-center space-x-2 text-gray-700 dark:text-gray-300 font-bold">
+<input class="form-checkbox h-5 w-5 text-red-500 rounded border-gray-300 transition duration-150 ease-in-out" id="challengeModeToggle" type="checkbox"/>
+<span>Timed Challenge Mode</span>
+</label>
+<div class="text-xl font-mono text-red-600 dark:text-red-400 font-extrabold hidden" id="timerDisplay">05:00</div>
+<div class="text-xl font-bold text-green-600 dark:text-green-400 hidden" id="scoreDisplay"></div>
+</div>
+<!-- Quiz Display Area -->
+<div class="space-y-6 pt-4" id="quizDisplay">
+<!-- Questions will be rendered here -->
+<p class="text-center text-gray-500 dark:text-gray-400 p-10 bg-white dark:bg-dark-card rounded-xl">Generate a quiz using the inputs above to begin!</p>
+</div>
+<!-- Action Bar -->
+<div class="hidden sticky bottom-0 z-40 w-full p-4 bg-white/90 dark:bg-dark-card/90 backdrop-blur-sm rounded-t-2xl shadow-2xl border-t border-soft-blue/20 dark:border-primary-blue/20" id="actionBar">
+<div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 max-w-4xl mx-auto">
+<button class="glowing-button py-3 px-6 rounded-xl text-white font-semibold bg-yellow-500 hover:bg-yellow-600 transition-all duration-300 disabled:opacity-50" disabled="" id="saveQuizBtn">
+<svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 7H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-3m-1-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                            Save Quiz
+                        </button>
+<button class="py-3 px-6 rounded-xl text-primary-blue dark:text-gray-100 font-semibold border-2 border-primary-blue dark:border-gray-600 hover:bg-primary-blue hover:text-white dark:hover:bg-gray-700 transition-all duration-300" id="refreshQuizBtn">
+                            Refresh
+                        </button>
+<button class="glowing-button flex-1 py-3 px-6 rounded-xl text-white font-semibold bg-green-500 hover:bg-green-600 transition-all duration-300" id="checkAnswersBtn">
+<svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                            Check Answers
+                        </button>
+<button class="py-3 px-6 rounded-xl text-primary-blue dark:text-gray-200 font-semibold border-2 border-primary-blue dark:border-gray-600 hover:bg-primary-blue hover:text-white transition-all duration-300" id="downloadQuizPdfBtn">
+                            Download (.pdf)
+                        </button>
+<button class="py-3 px-6 rounded-xl text-primary-blue dark:text-gray-200 font-semibold border-2 border-primary-blue dark:border-gray-600 hover:bg-primary-blue hover:text-white transition-all duration-300" id="downloadQuizBtn">
+                            Download (.txt)
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Modals -->
+<!-- My Quizzes Modal -->
+<div class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4 transition-opacity duration-300" id="myQuizzesModal">
+<div class="bg-white dark:bg-dark-card rounded-xl w-full max-w-lg p-6 shadow-2xl transform scale-95 transition-transform duration-300">
+<div class="flex justify-between items-center border-b pb-3 mb-4">
+<h3 class="text-xl font-bold font-display text-gray-900 dark:text-gray-50">My Saved Quizzes</h3>
+<button class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400" id="closeQuizzesModal">
+<svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="max-h-96 overflow-y-auto space-y-3" id="quizzesList">
+<p class="text-center text-gray-500 dark:text-gray-400" id="noQuizzesMessage">Loading quizzes...</p>
+</div>
+</div>
+</div>
+<!-- Firebase SDK Imports and Core Application Logic -->
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@300;600;700;800&display=swap');
+        :root {
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Poppins', sans-serif;
+        }
+        body { font-family: var(--font-main); }
+        /* Custom Glowing Button Styles */
+        .glowing-button {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        .glowing-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }       
+        /* Custom Scrollbar for better aesthetic */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color-light); }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-track { background: #1f2937; }
+        .dark ::-webkit-scrollbar-thumb { background: #60a5fa; }
+    
